@@ -1,0 +1,115 @@
+service: laravel-bref-generator
+
+provider:
+  name: aws
+  region: eu-central-1
+  runtime: provided.al2
+  stage: production
+
+  environment:
+    APP_NAME: Laravel Bref Generator
+    APP_ENV: ${self:provider.region}
+    APP_DEBUG: false
+    APP_KEY: ${ssm:/laravel-bref-generator-production/APP_KEY}
+    CACHE_DRIVER: dynamodb
+    SESSION_DRIVER: cookie
+    DYNAMODB_CACHE_TABLE: !Ref CacheTable
+    QUEUE_CONNECTION: sync
+    ASSET_URL: !Join [ '', [ 'https://', !GetAtt AssetsBucket.RegionalDomainName ] ]
+    MIX_ASSET_URL: !Join [ '', [ 'https://', !GetAtt AssetsBucket.RegionalDomainName ] ]
+    RELEASE_HASH: ${env:RELEASE_HASH} # You could use this for sentry release tracking for example
+    SENTRY_LARAVEL_DSN: https://ef7f4f4a0c924ce1920f247b59c2e2cf@o439520.ingest.sentry.io/5625878
+    SENTRY_TRACES_SAMPLE_RATE: 0
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action: [ dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:DeleteItem ]
+      Resource: !GetAtt CacheTable.Arn
+
+package:
+  exclude:
+    - .env
+    - node_modules/**
+    - public/storage/**
+    - public/css/**
+    - public/js/**
+    - resources/assets/**
+    - storage/**
+    - tests/**
+
+functions:
+  web:
+    # name: ${self:service}-${self:provider.stage}-web
+    handler: public/index.php
+    memorySize: 1024
+    timeout: 5 # in seconds (API Gateway has a timeout of 29 seconds)
+    reservedConcurrency: 5 # This compares to "capacity" in Vapor
+    layers:
+      - ${bref:layer.php-80-fpm}
+    events:
+      - httpApi: '*'
+      # Also configure our warmer
+      - schedule:
+          rate: rate(5 minutes)
+          input:
+            warmer: true
+            concurrency: 1
+
+  artisan:
+    # name: ${self:service}-${self:provider.stage}-artisan
+    handler: artisan
+    memorySize: 1024
+    timeout: 120 # in seconds
+    layers:
+      - ${bref:layer.php-80} # PHP
+      - ${bref:layer.console} # The "console" layer
+    events:
+      - schedule:
+          rate: rate(1 minute)
+          input: '"schedule:run --ansi --no-interaction --quiet"'
+
+plugins:
+  - ./vendor/bref/bref
+
+resources:
+  Resources:
+    # Website assets
+    AssetsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: laravel-bref-generator-assets
+        AccelerateConfiguration:
+          AccelerationStatus: Enabled
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: [ "*" ]
+              AllowedMethods: [ GET ]
+              AllowedOrigins: [ "*" ]
+
+    # Policy to make website assets publicly readable
+    AssetsBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref AssetsBucket
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal: '*' # everyone
+              Action: 's3:GetObject' # to read
+              Resource: 'arn:aws:s3:::laravel-bref-generator-assets/*'
+
+    # Cache table
+    CacheTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: laravel-bref-generator-cache
+        AttributeDefinitions:
+          - AttributeName: key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: key
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: expires_at
+          Enabled: true
