@@ -17,7 +17,7 @@ provider:
     QUEUE_CONNECTION: sync
     ASSET_URL: !Join [ '', [ 'https://', !GetAtt AssetsBucket.RegionalDomainName ] ]
     MIX_ASSET_URL: !Join [ '', [ 'https://', !GetAtt AssetsBucket.RegionalDomainName ] ]
-    RELEASE_HASH: ${env:RELEASE_HASH} # You could use this for sentry release tracking for example
+    RELEASE_HASH: ${env:RELEASE_HASH}
     SENTRY_LARAVEL_DSN: https://ef7f4f4a0c924ce1920f247b59c2e2cf@o439520.ingest.sentry.io/5625878
     SENTRY_TRACES_SAMPLE_RATE: 0
 
