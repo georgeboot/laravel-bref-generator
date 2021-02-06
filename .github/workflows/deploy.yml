@@ -113,7 +113,7 @@ jobs:
           args: --delete
         env:
           AWS_REGION: eu-central-1
-          AWS_S3_BUCKET: laravel-bref-template-assets
+          AWS_S3_BUCKET: laravel-bref-generator-assets
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
