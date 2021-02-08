@@ -142,10 +142,10 @@ jobs:
           path: public
 
       - name: Serverless Deploy
-        # uses: serverless/github-action@master
-        # with:
-        #   args: deploy --aws-s3-accelerate
-        run: npx sls deploy --aws-s3-accelerate
+        uses: serverless/github-action@master
+        with:
+          args: deploy --aws-s3-accelerate
+        # run: npx sls deploy --aws-s3-accelerate
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
