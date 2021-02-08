@@ -107,6 +107,6 @@ return [
     |
     */
 
-    'manifest_path' => null,
+    'manifest_path' => env('_HANDLER') ? '/tmp/storage/bootstrap/cache/livewire-components.php' : null,
 
 ];
