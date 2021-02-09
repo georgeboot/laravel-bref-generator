@@ -128,18 +128,6 @@
                 </label>
                 <input type="number" step="1" min="1" max="900" id="timeout" wire:model="scheduler.timeout" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
               </div>
-              <div class="col-span-3 sm:col-span-2">
-                <label for="reservedConcurrency" class="block text-sm font-medium text-gray-700">
-                  reservedConcurrency
-                </label>
-                <input type="number" step="1" min="0" id="reservedConcurrency" wire:model="scheduler.reservedConcurrency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              </div>
-              <div class="col-span-3 sm:col-span-2">
-                <label for="provisionedConcurrency" class="block text-sm font-medium text-gray-700">
-                  provisionedConcurrency
-                </label>
-                <input type="number" step="1" min="0" id="provisionedConcurrency" wire:model="scheduler.provisionedConcurrency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              </div>
               <div class="col-span-6 sm:col-span-2">
                 <label for="enabled" class="block text-sm font-medium text-gray-700">
                   enabled

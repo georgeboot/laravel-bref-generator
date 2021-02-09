@@ -27,8 +27,6 @@ class Generator extends Component
             'name' => 'scheduler',
             'memorySize' => 1024,
             'timeout' => 5,
-            'reservedConcurrency' => 5,
-            'provisionedConcurrency' => 5,
             'enabled' => true,
         ]);
 
@@ -107,8 +105,18 @@ class Generator extends Component
                 'handler' => 'artisan',
                 'memorySize' => $this->scheduler->memorySize,
                 'timeout' => $this->scheduler->timeout,
-                'reservedConcurrency' => $this->scheduler->reservedConcurrency,
-                'provisionedConcurrency' => $this->scheduler->provisionedConcurrency,
+                'layers' => [
+                    '${bref:layer.' . $this->phpVersion . '-fpm}',
+                    '${bref:layer.console}',
+                ],
+                'events' => [
+                    [
+                        'schedule' => [
+                            'rate' => 'rate(1 minute)',
+                            'input' => '"schedule:run --ansi --no-interaction --quiet"',
+                        ],
+                    ],
+                ],
             ],
         ];
     }
