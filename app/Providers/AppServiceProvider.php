@@ -23,6 +23,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        if (env('_HANDLER')) {
+            $this->ensureDirectoriesExist();
+        }
+    }
+
+    protected function ensureDirectoriesExist()
+    {
         $directories = [
             '/tmp/storage/bootstrap/cache',
         ];
