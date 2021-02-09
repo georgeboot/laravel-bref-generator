@@ -97,13 +97,70 @@
         </div>
       </form>
 
+      <form action="#" method="POST">
+        <div class="shadow sm:rounded-md sm:overflow-hidden">
+          <div class="bg-white py-6 px-4 space-y-6 sm:p-6">
+            <div>
+              <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Scheduler
+              </h3>
+              {{--                <p class="mt-1 text-sm text-gray-500">--}}
+              {{--                  Everyting related to your Laravel scheduler.--}}
+              {{--                </p>--}}
+            </div>
+
+            <div class="grid grid-cols-6 gap-6">
+              <div class="col-span-3 sm:col-span-2">
+                <label for="name" class="block text-sm font-medium text-gray-700">
+                  Function name
+                </label>
+                <input type="text" id="name" wire:model="scheduler.name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              </div>
+              <div class="col-span-3 sm:col-span-2">
+                <label for="memorySize" class="block text-sm font-medium text-gray-700">
+                  memorySize
+                </label>
+                <input type="number" step="1" min="128" max="10240" id="memorySize" wire:model="scheduler.memorySize" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              </div>
+              <div class="col-span-3 sm:col-span-2">
+                <label for="timeout" class="block text-sm font-medium text-gray-700">
+                  timeout
+                </label>
+                <input type="number" step="1" min="1" max="900" id="timeout" wire:model="scheduler.timeout" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              </div>
+              <div class="col-span-3 sm:col-span-2">
+                <label for="reservedConcurrency" class="block text-sm font-medium text-gray-700">
+                  reservedConcurrency
+                </label>
+                <input type="number" step="1" min="0" id="reservedConcurrency" wire:model="scheduler.reservedConcurrency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              </div>
+              <div class="col-span-3 sm:col-span-2">
+                <label for="provisionedConcurrency" class="block text-sm font-medium text-gray-700">
+                  provisionedConcurrency
+                </label>
+                <input type="number" step="1" min="0" id="provisionedConcurrency" wire:model="scheduler.provisionedConcurrency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+              </div>
+              <div class="col-span-6 sm:col-span-2">
+                <label for="enabled" class="block text-sm font-medium text-gray-700">
+                  enabled
+                </label>
+                <label class="inline-flex items-center mt-3.5">
+                  <input type="checkbox" id="enabled" wire:model="scheduler.enabled" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" checked="">
+                  <span class="ml-2 text-gray-700 text-sm">enabled</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
       @foreach ($httpApis as $key => $httpApi)
         <form wire:key="httpapi-{{ $key }}" action="#" method="POST">
           <div class="shadow sm:rounded-md sm:overflow-hidden">
             <div class="bg-white py-6 px-4 space-y-6 sm:p-6">
               <div>
                 <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  HTTP API {{ $loop->iteration }}
+                  {{ (new \NumberFormatter('en_US', \NumberFormatter::ORDINAL))->format($loop->iteration) }} HTTP API
                 </h3>
                 <p class="mt-1 text-sm text-gray-500">
                   Everyting related to HTTP API {{ $loop->iteration }}.
@@ -121,28 +178,34 @@
                   <label for="memorySize" class="block text-sm font-medium text-gray-700">
                     memorySize
                   </label>
-                  <input type="text" id="memorySize" wire:model="httpApis.{{ $key }}.memorySize" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  <input type="number" step="1" min="128" max="10240" id="memorySize" wire:model="httpApis.{{ $key }}.memorySize" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
                 <div class="col-span-3 sm:col-span-2">
                   <label for="timeout" class="block text-sm font-medium text-gray-700">
                     timeout
                   </label>
-                  <input type="text" id="timeout" wire:model="httpApis.{{ $key }}.timeout" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  <input type="number" step="1" min="1" max="900" id="timeout" wire:model="httpApis.{{ $key }}.timeout" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
                 <div class="col-span-3 sm:col-span-2">
                   <label for="reservedConcurrency" class="block text-sm font-medium text-gray-700">
                     reservedConcurrency
                   </label>
-                  <input type="text" id="reservedConcurrency" wire:model="httpApis.{{ $key }}.reservedConcurrency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                  <input type="number" step="1" min="0" id="reservedConcurrency" wire:model="httpApis.{{ $key }}.reservedConcurrency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-                <div class="col-span-6 sm:col-span-3">
-                  <label for="enableWarmer" class="block text-sm font-medium text-gray-700">
-                    Warmer
+                <div class="col-span-3 sm:col-span-2">
+                  <label for="provisionedConcurrency" class="block text-sm font-medium text-gray-700">
+                    provisionedConcurrency
                   </label>
-                  <select id="enableWarmer" wire:model="httpApis.{{ $key }}.warmer" class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    <option value="enabled">Enabled</option>
-                    <option value="disabled">Disabled</option>
-                  </select>
+                  <input type="number" step="1" min="0" id="provisionedConcurrency" wire:model="httpApis.{{ $key }}.provisionedConcurrency" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="col-span-6 sm:col-span-2">
+                  <label for="warmerEnabled" class="block text-sm font-medium text-gray-700">
+                    warmerEnabled
+                  </label>
+                  <label class="inline-flex items-center mt-3.5">
+                    <input type="checkbox" id="warmerEnabled" wire:model="httpApis.{{ $key }}.warmerEnabled" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" checked="">
+                    <span class="ml-2 text-gray-700 text-sm">warmerEnabled</span>
+                  </label>
                 </div>
               </div>
             </div>

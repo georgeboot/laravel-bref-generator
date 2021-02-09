@@ -2,6 +2,9 @@
 
 namespace App\Http;
 
+use App\Resources\HttpApi;
+use App\Resources\Scheduler;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Symfony\Component\Yaml\Yaml;
@@ -12,11 +15,36 @@ class Generator extends Component
     public string $stageName = 'production';
     public string $awsRegion = 'us-east-1';
     public string $phpVersion = 'php-80';
-    public array $httpApis = [];
+    public Collection $httpApis;
+
+    /** @var Scheduler|array */
+    public $scheduler;
 
     public function mount()
     {
+        $this->httpApis = collect([]);
+        $this->scheduler = new Scheduler([
+            'name' => 'scheduler',
+            'memorySize' => 1024,
+            'timeout' => 5,
+            'reservedConcurrency' => 5,
+            'provisionedConcurrency' => 5,
+            'enabled' => true,
+        ]);
+
         $this->addHttpApi();
+    }
+
+    public function dehydrate($value)
+    {
+        $this->scheduler = $this->scheduler->toArray();
+    }
+
+    public function hydrate($value)
+    {
+        $this->httpApis->transform(fn($array) => new HttpApi($array));
+
+        $this->scheduler = new Scheduler($this->scheduler);
     }
 
     public function render()
@@ -27,15 +55,16 @@ class Generator extends Component
     public function addHttpApi(): void
     {
         $uuid = Str::uuid()->toString();
-        $name = 'function-'.Str::random(6);
+        $name = 'function-' . Str::random(6);
 
-        $this->httpApis[$uuid] = [
+        $this->httpApis->put($uuid, new HttpApi([
             'name' => $name,
             'memorySize' => 1024,
             'timeout' => 5,
             'reservedConcurrency' => 5,
-            'warmer' => 'enabled',
-        ];
+            'provisionedConcurrency' => 5,
+            'warmerEnabled' => true,
+        ]));
     }
 
     public function getServiceNameProperty(): string
@@ -59,42 +88,61 @@ class Generator extends Component
                 ],
             ],
             'functions' => collect([
+                $this->generateScheduler(),
                 $this->generateHttpApiFunctions(),
             ])->mapWithKeys(fn($a) => $a)->toArray(),
         ];
 
-        return Yaml::dump($data, 4, 2,Yaml::DUMP_OBJECT_AS_MAP);
+        return Yaml::dump($data, 4, 2, Yaml::DUMP_OBJECT_AS_MAP);
+    }
+
+    protected function generateScheduler(): array
+    {
+        if (! $this->scheduler->enabled) {
+            return [];
+        }
+
+        return [
+            $this->scheduler->name => [
+                'handler' => 'artisan',
+                'memorySize' => $this->scheduler->memorySize,
+                'timeout' => $this->scheduler->timeout,
+                'reservedConcurrency' => $this->scheduler->reservedConcurrency,
+                'provisionedConcurrency' => $this->scheduler->provisionedConcurrency,
+            ],
+        ];
     }
 
     protected function generateHttpApiFunctions(): array
     {
-        return collect($this->httpApis)->mapWithKeys(function (array $httpApi) {
+        return $this->httpApis->mapWithKeys(function (HttpApi $httpApi) {
             $events = [
                 [
                     'httpApi' => '*',
                 ],
             ];
 
-            if ($httpApi['warmer'] === 'enabled') {
+            if ($httpApi->warmerEnabled) {
                 $events[] = [
                     'schedule' => [
                         'rate' => 'rate(5 minutes)',
                         'input' => [
                             'warmer' => true,
-                            'concurrency' => $httpApi['reservedConcurrency'],
+                            'concurrency' => $httpApi->reservedConcurrency,
                         ],
                     ],
                 ];
             }
 
             return [
-                $httpApi['name'] => [
+                $httpApi->name => [
                     'handler' => 'public/index.php',
-                    'memorySize' => $httpApi['memorySize'],
-                    'timeout' => $httpApi['timeout'],
-                    'reservedConcurrency' => $httpApi['reservedConcurrency'],
+                    'memorySize' => $httpApi->memorySize,
+                    'timeout' => $httpApi->timeout,
+                    'reservedConcurrency' => $httpApi->reservedConcurrency,
+                    'provisionedConcurrency' => $httpApi->provisionedConcurrency,
                     'layers' => [
-                        '${bref:layer' . $this->phpVersion . '-fpm}',
+                        '${bref:layer.' . $this->phpVersion . '-fpm}',
                     ],
                     'events' => $events,
                 ],
